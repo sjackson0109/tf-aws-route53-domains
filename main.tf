@@ -18,23 +18,7 @@ resource "aws_route53domains_registered_domain" "this" {
   for_each    = try(local.domains_registered_with_route53, {})
   domain_name = each.key
 
-  # Contacts
-  admin_contact {
-    address_line_1    = try(var.contacts[each.value.contacts.admin_key].address_line_1, null)
-    address_line_2    = try(var.contacts[each.value.contacts.admin_key].address_line_2, null)
-    city              = try(var.contacts[each.value.contacts.admin_key].city, null)
-    contact_type      = try(var.contacts[each.value.contacts.admin_key].contact_type, null)
-    country_code      = try(var.contacts[each.value.contacts.admin_key].country_code, null)
-    email             = try(var.contacts[each.value.contacts.admin_key].email, null)
-    extra_params      = try(var.contacts[each.value.contacts.admin_key].extra_params, null)
-    fax               = try(var.contacts[each.value.contacts.admin_key].fax, null)
-    first_name        = try(var.contacts[each.value.contacts.admin_key].first_name, null)
-    last_name         = try(var.contacts[each.value.contacts.admin_key].last_name, null)
-    organization_name = try(var.contacts[each.value.contacts.admin_key].organization_name, null)
-    phone_number      = try(var.contacts[each.value.contacts.admin_key].phone_number, null)
-    state             = try(var.contacts[each.value.contacts.admin_key].state, null)
-    zip_code          = try(var.contacts[each.value.contacts.admin_key].zip_code, null)
-  }
+  # Registrant
   registrant_contact {
     address_line_1    = try(var.contacts[each.value.contacts.registrant_key].address_line_1, null)
     address_line_2    = try(var.contacts[each.value.contacts.registrant_key].address_line_2, null)
@@ -51,6 +35,25 @@ resource "aws_route53domains_registered_domain" "this" {
     state             = try(var.contacts[each.value.contacts.registrant_key].state, null)
     zip_code          = try(var.contacts[each.value.contacts.registrant_key].zip_code, null)
   }
+
+  # Administrator
+  admin_contact {
+    address_line_1    = try(var.contacts[each.value.contacts.admin_key].address_line_1, null)
+    address_line_2    = try(var.contacts[each.value.contacts.admin_key].address_line_2, null)
+    city              = try(var.contacts[each.value.contacts.admin_key].city, null)
+    contact_type      = try(var.contacts[each.value.contacts.admin_key].contact_type, null)
+    country_code      = try(var.contacts[each.value.contacts.admin_key].country_code, null)
+    email             = try(var.contacts[each.value.contacts.admin_key].email, null)
+    extra_params      = try(var.contacts[each.value.contacts.admin_key].extra_params, null)
+    fax               = try(var.contacts[each.value.contacts.admin_key].fax, null)
+    first_name        = try(var.contacts[each.value.contacts.admin_key].first_name, null)
+    last_name         = try(var.contacts[each.value.contacts.admin_key].last_name, null)
+    organization_name = try(var.contacts[each.value.contacts.admin_key].organization_name, null)
+    phone_number      = try(var.contacts[each.value.contacts.admin_key].phone_number, null)
+    state             = try(var.contacts[each.value.contacts.admin_key].state, null)
+    zip_code          = try(var.contacts[each.value.contacts.admin_key].zip_code, null)
+  }
+  # Technical
   tech_contact {
     address_line_1    = try(var.contacts[each.value.contacts.tech_key].address_line_1, null)
     address_line_2    = try(var.contacts[each.value.contacts.tech_key].address_line_2, null)
@@ -80,11 +83,11 @@ resource "aws_route53domains_registered_domain" "this" {
 }
 
 output "notice" {
-  value = (
-    "NOTICE: You may receive the following message:\n" +
-    "│ Error: waiting for Route 53 Domains Domain ('mytestdomain.com') contacts update: timeout while waiting for state to become 'SUCCESSFUL' (last state: 'IN_PROGRESS', timeout: 30m0s)\n" +
-    "\n" +
-    "Interpretation: Go and check the mailbox for 'verify this update was correct', then 'click on the verify link'.\n" +
-    "Tip: Mine was flagged as quarantined on the way in, due to our DMARC policy."
-  )
+  value = <<EOT
+NOTICE: You may receive the following message:
+│ Error: waiting for Route 53 Domains Domain ('mytestdomain.com') contacts update: timeout while waiting for state to become 'SUCCESSFUL' (last state: 'IN_PROGRESS', timeout: 30m0s)
+
+Interpretation: Go and check the mailbox for 'verify this update was correct', then 'click on the verify link'.
+Tip: Mine was flagged as quarantined on the way in, due to our DMARC policy.
+EOT
 }
