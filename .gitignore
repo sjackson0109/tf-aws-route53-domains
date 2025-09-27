@@ -1,6 +1,23 @@
-# Do not push these files during commit
-.terraform
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+terraform.tfvars
+terraform.tfvars.json
+*.backup
+*.out
+# Local
+*.log
+# Existing entries
 .terraform.lock.hcl
 .terraform.state
 terraform.state
-Testing
+
+clients/
+
+terraform.exe
