@@ -1,8 +1,9 @@
 ## Preface
 
-Author: Simon Jackson (sjackson0109)
-Version:        1.0.1
-Date: 09/01/2024
+- Author: Simon Jackson (sjackson0109)
+- Version: 1.0.2
+- Date Created: 09/01/2024
+- Date Modified: 27/09/2025
 
 ## Objective
 Mass update the AWS Route53 registrar WHOIS contact details for all the domains, a customer had registered with them. Figured this would be extremely useful to share with the world. 
@@ -30,17 +31,60 @@ You will need the following:
 1. Download this repository to your local workstation
 2. Install terraform
 3. Launch a BASH or PowerShell terminal. and set 3x variables:
- <br> - $env:AWS_ACCESS_KEY_ID="<KEY-GOES-HERE>"
- <br> - $env:AWS_SECRET_ACCESS_KEY="<SECRET-VALUE-GOES-HERE>"
- <br> - $env:AWS_REGION="us-east-1"
 
-4. Initialise Terraform using `terraform init`
-5. Plan for the build, using `terraform plan`. The following output should be visible:
-```Plan: 1 to add, 0 to change, 0 to destroy.```
-6. Apply all changes using `terraform apply -auto-approve`. The following output should be visible:
-```Apply complete! Resources: 1 added, 0 changed, 0 destroyed.```
+    ```bash
+    $env:AWS_ACCESS_KEY_ID="<KEY-GOES-HERE>"
+    $env:AWS_SECRET_ACCESS_KEY="<SECRET-VALUE-GOES-HERE>"
+    $env:AWS_REGION="us-east-1"
+    ```
 
-## Usage Example
+
+4. **Initialise Terraform**
+  
+    Run:
+  
+    ```bash
+    terraform init
+    ```
+  
+    This will download the required provider plugins and set up the backend.
+
+5. **Plan the deployment**
+
+    To see what changes will be made, run:
+    
+    ```bash
+    terraform plan --var-file=./examples/example.tfvars
+    ```
+    
+    Replace the file path with your own `.tfvars` file as needed. This command will show you a summary of what Terraform will add, change, or destroy. No changes are made at this stage.
+
+6. **Apply the changes**
+
+    To make the changes, run:
+    
+    ```bash
+    terraform apply --var-file=./examples/example.tfvars
+    ```
+    
+    You will be prompted to confirm. To skip the prompt, add `-auto-approve`.
+
+    Example output:
+    
+    ```
+    Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+    ```
+
+## Terraform Outputs
+
+After running `terraform apply`, you may see outputs such as:
+
+- `notice`: Guidance for verifying contact updates in your email inbox. This will remind you to check for verification emails from AWS and confirm any required changes.
+- `special_tld_warning`: (If present) Lists domains that require special manual processing for owner changes. This is informational and helps you identify domains that may need AWS Support intervention.
+
+These outputs are informational and do not affect your infrastructure.
+
+## Module Usage Example
 
 ```
 module "route53_domains" {
@@ -56,56 +100,62 @@ module "route53_domains" {
 ### `domains`
 Type: `map(object)`
 
-Each key is a domain name (e.g., `mytestdomain.com`). Value is an object with:
-  - `registrar` (string, optional): Registrar name (e.g., `route53`).
-  - `contacts` (object, required):
-      - `registrant_key` (string, required): Key referencing a contact in `contacts` map.
-      - `admin_key` (string, required): Key referencing a contact in `contacts` map.
-      - `tech_key` (string, required): Key referencing a contact in `contacts` map.
-  - `privacy` (bool, optional): Enable privacy protection.
-  - `transfer_lock` (bool, optional): Enable transfer lock.
-  - `auto_renew` (bool, optional): Enable auto-renewal.
-  - Any other domain-specific fields as needed.
+Each key is a domain name (e.g., `mytestdomain.com`). Value is an object with the following fields:
+
+| Field           | Type     | Required? | Description                                                      |
+|-----------------|----------|-----------|------------------------------------------------------------------|
+| registrar       | string   | Optional  | Registrar name (e.g., `route53`)                                 |
+| contacts        | object   | Required  | See below; maps contact roles to contact keys                    |
+| ├─ registrant_key | string | Required  | Key referencing a contact in `contacts` map                      |
+| ├─ admin_key      | string | Required  | Key referencing a contact in `contacts` map                      |
+| └─ tech_key       | string | Required  | Key referencing a contact in `contacts` map                      |
+| privacy         | bool     | Optional  | Enable privacy protection                                        |
+| transfer_lock   | bool     | Optional  | Enable transfer lock                                             |
+| auto_renew      | bool     | Optional  | Enable auto-renewal                                              |
+| ...             | any      | Optional  | Any other domain-specific fields as needed                       |
 
 ### `contacts`
 Type: `map(object)`
 
-Each key is a contact reference (string or int). Value is an object with:
-  - `address_line_1` (string, required): First line of address.
-  - `address_line_2` (string, optional): Second line of address.
-  - `city` (string, required): City.
-  - `contact_type` (string, required): One of `PERSON`, `COMPANY`, `ASSOCIATION`, `PUBLIC_BODY`, `RESELLER`.
-  - `country_code` (string, required): 2-letter country code (e.g., `GB`).
-  - `email` (string, required): Email address.
-  - `extra_params` (map(string), optional): Extra TLD-specific parameters.
-  - `fax` (string, optional): Fax number.
-  - `first_name` (string, required): First name.
-  - `last_name` (string, required): Last name.
-  - `organization_name` (string, optional): Organization name (for non-PERSON types).
-  - `phone_number` (string, required): E.164 format (e.g., `+44.1234567890`).
-  - `state` (string, optional): State or province.
-  - `zip_code` (string, required): Postal code.
+Each key is a contact reference (string or int). Value is an object with the following fields:
+
+| Field             | Type          | Required? | Description                                                      |
+|-------------------|---------------|-----------|------------------------------------------------------------------|
+| address_line_1    | string        | Required  | First line of address                                            |
+| address_line_2    | string        | Optional  | Second line of address                                           |
+| city              | string        | Required  | City                                                            |
+| contact_type      | string        | Required  | One of `PERSON`, `COMPANY`, `ASSOCIATION`, `PUBLIC_BODY`, `RESELLER` |
+| country_code      | string        | Required  | 2-letter country code (e.g., `GB`)                               |
+| email             | string        | Required  | Email address                                                    |
+| extra_params      | map(string)   | Optional  | Extra TLD-specific parameters                                    |
+| fax               | string        | Optional  | Fax number                                                       |
+| first_name        | string        | Required  | First name                                                       |
+| last_name         | string        | Required  | Last name                                                        |
+| organization_name | string        | Optional  | Organization name (for non-PERSON types)                         |
+| phone_number      | string        | Required  | E.164 format (e.g., `+44.1234567890`)                            |
+| state             | string        | Optional  | State or province                                                |
+| zip_code          | string        | Required  | Postal code                                                      |
 
 ## Example: Using a Nested var-file
 
-Create a file like `clients/goodshape.tfvars`:
+Create a file like `examples/example.tfvars`:
 ```hcl
 contacts = {
   "1" = {
-    address_line_1 = "28 Clarendon Road"
-    city           = "Watford"
+    address_line_1 = "123 Example Street"
+    city           = "Exampleville"
     contact_type   = "COMPANY"
     country_code   = "GB"
-    email          = "domains@goodshape.com"
+    email          = "contact@example.com"
     extra_params = {
-      UK_COMPANY_NUMBER = "05297929"
+      UK_COMPANY_NUMBER = "12345678"
       UK_CONTACT_TYPE   = "LTD"
     }
-    first_name        = "Jing"
-    last_name         = "Tang"
-    organization_name = "GoodShape UK Ltd"
-    phone_number      = "+44.3454565730"
-    zip_code          = "WD17 1JJ"
+    first_name        = "Jane"
+    last_name         = "Doe"
+    organization_name = "Example Ltd"
+    phone_number      = "+44.1234567890"
+    zip_code          = "EX4 MPL"
   }
   # ... more contacts ...
 }
@@ -126,7 +176,7 @@ domains = {
 ```
 Then run:
 ```bash
-terraform apply --var-file=./clients/goodshape.tfvars
+terraform apply --var-file=./examples/example.tfvars
 ```
 
 ## Outputs
@@ -155,7 +205,7 @@ terraform apply --var-file=./clients/goodshape.tfvars
 | .be, .cl, .com.ar, .com.br, .es, .fi, .qa, .ru, .se, .sh | Yes                                 | Requires AWS Support case and/or registry form for owner changes      |
 | .tech, .ltd, .net, .org, .info, .biz, .tv, .global, others | No                                  | Standard AWS/Terraform automation applies; email verification may occur |
 
-**.tech, .ltd, .net, .org, and similar TLDs:**
+**Notes on .tech, .ltd, .net, .org, and similar TLDs:**
 
 - You can update contact and ownership information for these TLDs programmatically using Terraform and AWS Route53.
 - No AWS Support case or special form is required for owner/contact changes.
@@ -170,11 +220,7 @@ For more details, see:
 - [AWS Route53: TLDs that require special processing to change the owner](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-update-contacts.html#domain-update-contacts-domain-ownership-form)
 I recommend doing this for ONE domain first, for every set of unique contact details you need to set; then doing the rest after you confirmed that is successful. Why?
 Because of the following Error:
-```
-│ Error: waiting for Route 53 Domains Domain ("mytestdomain.com") contacts update: timeout while waiting for state to become 'SUCCESSFUL' (last state: 'IN_PROGRESS', timeout: 30m0s)
-```
+    ```
+    │ Error: waiting for Route 53 Domains Domain ("mytestdomain.com") contacts update: timeout while waiting for state to become 'SUCCESSFUL' (last state: 'IN_PROGRESS', timeout: 30m0s)
+    ```
 How to fix this: simply go to the mailbox of the contact, and click on the verify contact details link.
-
-
-# Terraform state (example):
-aws_route53domains_registered_domain.this["mytestdomain.com"]
